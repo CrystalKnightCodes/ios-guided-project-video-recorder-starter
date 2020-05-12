@@ -57,7 +57,7 @@ class CameraViewController: UIViewController {
             captureSession.sessionPreset = .hd1920x1080
         }
         
-        guard session.canAddOutput(fileOutput) else {
+        guard captureSession.canAddOutput(fileOutput) else {
             preconditionFailure("This session can't handle this type of output.")
         }
         
@@ -97,12 +97,22 @@ class CameraViewController: UIViewController {
 		let fileURL = documentsDirectory.appendingPathComponent(name).appendingPathExtension("mov")
 		return fileURL
 	}
+    func updateViews() {
+        recordButton.isSelected = fileOutput.isRecording
+    }
 }
 
 
 extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
     func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
-        <#code#>
+        if let error = error {
+            print("Error saving video: \(error)")
+        }
+        print("Video URL: \(outputFileURL)")
+        updateViews()
+    }
+    func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]) {
+        updateViews()
     }
     
     
