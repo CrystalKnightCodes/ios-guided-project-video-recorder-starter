@@ -13,6 +13,8 @@ class CameraViewController: UIViewController {
     
     lazy private var captureSession = AVCaptureSession()
     lazy private var fileOutput = AVCaptureMovieFileOutput()
+    
+    var player: AVPlayer!
 
     @IBOutlet var recordButton: UIButton!
     @IBOutlet var cameraView: CameraPreviewView!
@@ -37,9 +39,27 @@ class CameraViewController: UIViewController {
         
         captureSession.stopRunning()
     }
+    
+    func playMovie(url: URL) {
+        player = AVPlayer(url: url)
+        
+        let playerView = MoviePlayerView()
+        playerView.player = player
+        
+        var topRect = view.bounds
+        topRect.size.height /= 4
+        topRect.size.width /= 4
+        topRect.origin.y = view.layoutMargins.top
+        
+        playerView.frame = topRect
+        view.addSubview(playerView)
+        
+        player.play()
+    }
 
     private func setupCamera() {
         let camera = bestCamera()
+        let microphone = bestMicrophone()
         
         captureSession.beginConfiguration()
         
@@ -47,11 +67,16 @@ class CameraViewController: UIViewController {
             preconditionFailure("Can't create an input from the camera, but we should do something better than crashing. ")
         }
         
+        guard let microphoneInput = try? AVCaptureDeviceInput(device: microphone) else {
+            preconditionFailure("Can't create an input from the microphone.")
+        }
+        
         guard captureSession.canAddInput(cameraInput) else {
             preconditionFailure("This session can't handle this type of input: \(cameraInput)")
         }
         
         captureSession.addInput(cameraInput)
+        captureSession.addInput(microphoneInput)
         
         if captureSession.canSetSessionPreset(.hd1920x1080) {
             captureSession.sessionPreset = .hd1920x1080
@@ -76,6 +101,14 @@ class CameraViewController: UIViewController {
         return device;
         }
         preconditionFailure("No cameras on device match the specs that we need.")
+    }
+    
+    private func bestMicrophone() -> AVCaptureDevice {
+        if let device = AVCaptureDevice.default(for: .audio) {
+        return device
+        }
+
+        preconditionFailure("No microphones on device match the specs that we need.")
     }
     
     @IBAction func recordButtonPressed(_ sender: Any) {
@@ -110,9 +143,11 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
         }
         print("Video URL: \(outputFileURL)")
         updateViews()
+        playMovie(url: outputFileURL)
     }
     func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]) {
         updateViews()
+        
     }
     
     
