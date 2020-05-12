@@ -8,6 +8,7 @@
 
 import UIKit
 import AVFoundation
+import AVKit
 
 class CameraViewController: UIViewController {
     
@@ -57,20 +58,24 @@ class CameraViewController: UIViewController {
     }
     
     func playMovie(url: URL) {
-        player = AVPlayer(url: url)
+        let playerVC = AVPlayerViewController()
+        playerVC.player = AVPlayer(url: url)
         
-        let playerView = MoviePlayerView()
-        playerView.player = player
-        
-        var topRect = view.bounds
-        topRect.size.height /= 4
-        topRect.size.width /= 4
-        topRect.origin.y = view.layoutMargins.top
-        
-        playerView.frame = topRect
-        view.addSubview(playerView)
-        
-        player.play()
+        self.present(playerVC, animated: true, completion: nil)
+//        player = AVPlayer(url: url)
+//
+//        let playerView = MoviePlayerView()
+//        playerView.player = player
+//
+//        var topRect = view.bounds
+//        topRect.size.height /= 4
+//        topRect.size.width /= 4
+//        topRect.origin.y = view.layoutMargins.top
+//
+//        playerView.frame = topRect
+//        view.addSubview(playerView)
+//
+//        player.play()
     }
 
     private func setupCamera() {
