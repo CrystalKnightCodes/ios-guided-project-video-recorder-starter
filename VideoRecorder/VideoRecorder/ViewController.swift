@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import AVFoundation
 
 class ViewController: UIViewController {
 	
@@ -15,14 +16,38 @@ class ViewController: UIViewController {
 		// Do any additional setup after loading the view.
 	}
 	
-	override func viewDidAppear(_ animated: Bool) {
-		super.viewDidAppear(animated)
-		
-		// TODO: get permission
-		
-		showCamera()
-		
-	}
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        requestPermissionAndShowCamera()
+    }
+
+    
+    private func requestPermissionAndShowCamera() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            showCamera()
+        case .denied:
+            preconditionFailure("Tell the user they can't use the app without giving permissions via Settings > Privacy > Video.")
+        case .notDetermined:
+            requestVideoPermission()
+        case .restricted: // Parental controls prevent recording
+            preconditionFailure("Video is disabled, please review device restrictions.")
+        @unknown default:
+            preconditionFailure("A new status code was added that we need to handle.")
+        }
+    }
+    
+    private func requestVideoPermission() {
+        AVCaptureDevice.requestAccess(for: .video) { isGranted in
+            guard isGranted else {
+                preconditionFailure("UI: Tell user to enable permissions for Video/Camera.")
+            }
+            DispatchQueue.main.async {
+                self.showCamera()
+            }
+        }
+    }
 	
 	private func showCamera() {
 		performSegue(withIdentifier: "ShowCamera", sender: self)
